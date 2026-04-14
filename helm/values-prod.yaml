@@ -1,0 +1,300 @@
+# kube-prometheus-stack Helm Values (프로덕션용)
+# 사용법: helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#           --namespace monitoring \
+#           --values helm/values.yaml \
+#           --values helm/values-prod.yaml
+
+# ============================================================
+# Prometheus 프로덕션 설정
+# ============================================================
+prometheus:
+  prometheusSpec:
+    replicas: 2   # Active-Active HA
+
+    # 레플리카 구분 레이블 (AlertManager 중복 제거용)
+    replicaExternalLabelName: "__replica__"
+
+    # 보존 정책
+    retention: 15d
+    retentionSize: "80GB"
+
+    # EBS PVC (프로덕션 크기)
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 100Gi
+
+    # 리소스 (프로덕션 사양)
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: 1000m
+      limits:
+        memory: 8Gi
+        cpu: 4000m
+
+    # 클러스터 식별 레이블
+    externalLabels:
+      cluster: "my-eks-prod"
+      environment: "production"
+      region: "ap-northeast-2"
+
+    # Remote Write to Mimir (장기 보존)
+    remoteWrite:
+      - url: http://mimir-nginx.mimir.svc.cluster.local/api/v1/push
+        headers:
+          X-Scope-OrgID: "production"
+        queueConfig:
+          capacity: 10000
+          maxShards: 50
+          maxSamplesPerSend: 5000
+          batchSendDeadline: 5s
+          minBackoff: 30ms
+          maxBackoff: 5s
+        writeRelabelConfigs:
+          # 불필요한 메트릭 제외
+          - sourceLabels: [__name__]
+            regex: 'go_gc_duration_seconds.*'
+            action: drop
+
+    # AZ 분산 배포
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: prometheus
+
+    podAntiAffinity: "hard"
+    podAntiAffinityTopologyKey: "kubernetes.io/hostname"
+
+    # 쿼리 제한
+    query:
+      maxConcurrency: 20
+      timeout: 2m
+      maxSamples: 50000000
+
+    # Admin API 비활성화 (프로덕션)
+    enableAdminAPI: false
+
+    # 보안
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+
+# ============================================================
+# AlertManager 프로덕션 설정
+# ============================================================
+alertmanager:
+  alertmanagerSpec:
+    replicas: 3   # HA 클러스터
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: alertmanager
+
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url_secret:
+        name: alertmanager-secrets
+        key: slack-webhook-url
+
+    route:
+      group_by: ['alertname', 'cluster', 'namespace', 'service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'slack-default'
+      routes:
+        - matchers:
+            - alertname = "Watchdog"
+          receiver: 'null'
+        - matchers:
+            - alertname = "InfoInhibitor"
+          receiver: 'null'
+        - matchers:
+            - severity = "critical"
+          receiver: 'pagerduty-critical'
+          continue: true
+        - matchers:
+            - severity = "critical"
+          receiver: 'slack-critical'
+        - matchers:
+            - severity = "warning"
+          receiver: 'slack-warning'
+
+    receivers:
+      - name: 'null'
+
+      - name: 'slack-default'
+        slack_configs:
+          - channel: '#alerts'
+            send_resolved: true
+            title: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Alert:* {{ .Annotations.summary }}
+              *Namespace:* {{ .Labels.namespace }}
+              *Severity:* {{ .Labels.severity }}
+              {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+              {{ end }}
+
+      - name: 'slack-warning'
+        slack_configs:
+          - channel: '#alerts-warning'
+            send_resolved: true
+
+      - name: 'slack-critical'
+        slack_configs:
+          - channel: '#alerts-critical'
+            send_resolved: true
+
+      - name: 'pagerduty-critical'
+        pagerduty_configs:
+          - service_key_secret:
+              name: alertmanager-secrets
+              key: pagerduty-service-key
+            send_resolved: true
+
+    inhibit_rules:
+      - source_matchers:
+          - severity = "critical"
+        target_matchers:
+          - severity = "warning"
+        equal: ['alertname', 'namespace', 'pod']
+
+# ============================================================
+# Grafana 프로덕션 설정
+# ============================================================
+grafana:
+  enabled: true
+
+  # 비밀번호는 Secret으로 관리
+  admin:
+    existingSecret: grafana-admin-secret
+    userKey: admin-user
+    passwordKey: admin-password
+
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClassName: gp3
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  replicas: 2
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.example.com
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.example.com
+
+  grafana.ini:
+    server:
+      root_url: https://grafana.example.com
+      domain: grafana.example.com
+    database:
+      type: postgres   # 프로덕션에서는 외부 DB 권장
+    security:
+      cookie_secure: true
+      cookie_samesite: strict
+      allow_embedding: false
+    auth.anonymous:
+      enabled: false
+    log:
+      level: warn
+
+# ============================================================
+# node-exporter 프로덕션
+# ============================================================
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 500m
+      memory: 200Mi
+
+# ============================================================
+# kube-state-metrics 프로덕션
+# ============================================================
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # 수집할 리소스 지정 (불필요한 것 제외)
+  collectors:
+    - certificatesigningrequests
+    - configmaps
+    - cronjobs
+    - daemonsets
+    - deployments
+    - endpoints
+    - horizontalpodautoscalers
+    - ingresses
+    - jobs
+    - leases
+    - limitranges
+    - mutatingwebhookconfigurations
+    - namespaces
+    - networkpolicies
+    - nodes
+    - persistentvolumeclaims
+    - persistentvolumes
+    - poddisruptionbudgets
+    - pods
+    - replicasets
+    - replicationcontrollers
+    - resourcequotas
+    - secrets
+    - services
+    - statefulsets
+    - storageclasses
+    - validatingwebhookconfigurations
+    - volumeattachments

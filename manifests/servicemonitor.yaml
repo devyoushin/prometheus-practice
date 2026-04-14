@@ -1,0 +1,31 @@
+# ServiceMonitor: example-app 메트릭 수집 설정
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: example-app
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack  # Prometheus CR의 serviceMonitorSelector와 일치
+spec:
+  selector:
+    matchLabels:
+      app: example-app             # 대상 Service의 레이블
+  namespaceSelector:
+    matchNames:
+      - default                    # example-app이 있는 네임스페이스
+  endpoints:
+    - port: http                   # Service의 port 이름
+      interval: 15s                # 수집 주기
+      path: /metrics               # 메트릭 경로
+      relabelings:
+        # 파드 이름 레이블 추가
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        # 네임스페이스 레이블 추가
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+      metricRelabelings:
+        # go_ 메트릭 제외 (용량 절약)
+        - sourceLabels: [__name__]
+          regex: 'go_gc_duration_seconds.*'
+          action: drop

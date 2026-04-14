@@ -1,0 +1,218 @@
+# kube-prometheus-stack Helm Values (개발/테스트용)
+# 사용법: helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#           --namespace monitoring --values helm/values.yaml
+
+# ============================================================
+# Prometheus 설정
+# ============================================================
+prometheus:
+  prometheusSpec:
+    replicas: 1
+
+    # 보존 정책
+    retention: 3d
+    retentionSize: "10GB"
+
+    # EBS PVC
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+    # 리소스 제한 (개발용 최소 사양)
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 200m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+
+    # 수집 설정
+    scrapeInterval: "15s"
+    evaluationInterval: "15s"
+
+    # 클러스터 식별 레이블
+    externalLabels:
+      cluster: "my-eks-cluster"
+      environment: "development"
+
+    # ServiceMonitor 탐색 범위 (모든 네임스페이스)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+
+    # Admin API (개발용으로만 활성화)
+    enableAdminAPI: false
+
+    # 쿼리 설정
+    query:
+      maxConcurrency: 20
+      timeout: 2m
+      maxSamples: 50000000
+
+# ============================================================
+# AlertManager 설정
+# ============================================================
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+  config:
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ['alertname', 'cluster', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: 'null'
+      routes:
+        # Watchdog (항상 FIRING인 헬스체크 알림) 무시
+        - matchers:
+            - alertname = "Watchdog"
+          receiver: 'null'
+        - matchers:
+            - alertname = "InfoInhibitor"
+          receiver: 'null'
+
+    receivers:
+      - name: 'null'
+
+    inhibit_rules:
+      - source_matchers:
+          - severity = "critical"
+        target_matchers:
+          - severity = "warning"
+        equal: ['alertname', 'namespace', 'pod']
+
+# ============================================================
+# Grafana 설정
+# ============================================================
+grafana:
+  enabled: true
+  adminPassword: "prom-operator"  # 개발용, 프로덕션에서는 Secret 사용
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: gp3
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+    auth.anonymous:
+      enabled: false
+    security:
+      allow_embedding: false
+
+# ============================================================
+# node-exporter
+# ============================================================
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 30Mi
+    limits:
+      cpu: 200m
+      memory: 100Mi
+
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists
+
+# ============================================================
+# kube-state-metrics
+# ============================================================
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ============================================================
+# Prometheus Operator
+# ============================================================
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ============================================================
+# 기본 알림 규칙 (kube-prometheus-stack 내장)
+# ============================================================
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8s: true
+    kubeApiserverAvailability: true
+    kubeApiserverBurnrate: true
+    kubeApiserverHistogram: true
+    kubeApiserverSlos: true
+    kubeControllerManager: true
+    kubelet: true
+    kubeProxy: false   # EKS에서는 비활성화
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeSchedulerAlerting: true
+    kubeSchedulerRecording: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true

@@ -1,0 +1,112 @@
+# PrometheusRule: example-app 알림 + Recording Rules
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: example-app-rules
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack  # Prometheus CR의 ruleSelector와 일치
+spec:
+  groups:
+    # ============================================================
+    # Recording Rules
+    # ============================================================
+    - name: example-app.recording_rules
+      interval: 30s
+      rules:
+        # 초당 전체 요청 수 (job 레벨)
+        - record: job:http_requests_total:rate5m
+          expr: |
+            sum by (job) (
+              rate(http_requests_total[5m])
+            )
+
+        # 초당 에러 요청 수
+        - record: job:http_requests_errors:rate5m
+          expr: |
+            sum by (job) (
+              rate(http_requests_total{status=~"5.."}[5m])
+            )
+
+        # 에러율
+        - record: job:http_requests_error_ratio:rate5m
+          expr: |
+            job:http_requests_errors:rate5m
+            / job:http_requests_total:rate5m
+
+        # P99 응답 시간
+        - record: job:http_request_duration_seconds:p99_rate5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (job, le) (
+                rate(http_request_duration_seconds_bucket[5m])
+              )
+            )
+
+    # ============================================================
+    # Alert Rules
+    # ============================================================
+    - name: example-app.alerts
+      rules:
+        # 서비스 다운
+        - alert: ExampleAppDown
+          expr: up{job="example-app"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            service: example-app
+          annotations:
+            summary: "Example App is down"
+            description: "Instance {{ $labels.instance }} has been down for more than 1 minute."
+            runbook_url: "https://wiki/runbooks/example-app-down"
+
+        # 높은 에러율 (> 5%)
+        - alert: ExampleAppHighErrorRate
+          expr: |
+            job:http_requests_error_ratio:rate5m{job="example-app"} > 0.05
+          for: 5m
+          labels:
+            severity: warning
+            service: example-app
+          annotations:
+            summary: "High error rate on Example App"
+            description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+
+        # 매우 높은 에러율 (> 20%)
+        - alert: ExampleAppCriticalErrorRate
+          expr: |
+            job:http_requests_error_ratio:rate5m{job="example-app"} > 0.20
+          for: 2m
+          labels:
+            severity: critical
+            service: example-app
+          annotations:
+            summary: "Critical error rate on Example App"
+            description: "Error rate is {{ $value | humanizePercentage }}."
+
+        # 높은 응답 시간 P99 > 1s
+        - alert: ExampleAppHighLatency
+          expr: |
+            job:http_request_duration_seconds:p99_rate5m{job="example-app"} > 1.0
+          for: 5m
+          labels:
+            severity: warning
+            service: example-app
+          annotations:
+            summary: "High P99 latency on Example App"
+            description: "P99 latency is {{ $value | humanizeDuration }}."
+
+        # 요청 수 급감 (정상의 50% 이하)
+        - alert: ExampleAppLowRequestRate
+          expr: |
+            job:http_requests_total:rate5m{job="example-app"}
+            < on (job) (
+              avg_over_time(job:http_requests_total:rate5m{job="example-app"}[1h]) * 0.5
+            )
+          for: 10m
+          labels:
+            severity: warning
+            service: example-app
+          annotations:
+            summary: "Unusually low request rate on Example App"
+            description: "Request rate dropped to {{ $value | humanize }} req/s."

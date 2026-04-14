@@ -1,0 +1,26 @@
+# Personal values files
+values-personal.yaml
+values-local.yaml
+*-secret.yaml
+*-secrets.yaml
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.tfvars
+
+# Credentials
+.env
+*.pem
+*.key
+kubeconfig-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp

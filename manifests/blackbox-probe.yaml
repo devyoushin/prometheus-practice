@@ -1,0 +1,85 @@
+# Blackbox Exporter Probe: 외부 HTTP 엔드포인트 모니터링
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: external-endpoints
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  # blackbox-exporter 주소
+  prober:
+    url: kube-prometheus-stack-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+    scheme: http
+    path: /probe
+
+  # HTTP 200 체크 모듈 사용
+  module: http_2xx
+
+  # 수집 설정
+  interval: 30s
+  scrapeTimeout: 10s
+
+  # 모니터링할 URL 목록
+  targets:
+    staticConfig:
+      static:
+        - https://example.com
+        - https://api.example.com/health
+      labels:
+        environment: production
+        team: platform
+
+---
+# Blackbox Probe 알림 규칙
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: blackbox-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: blackbox.alerts
+      rules:
+        # 엔드포인트 다운
+        - alert: EndpointDown
+          expr: probe_success == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Endpoint {{ $labels.target }} is down"
+            description: "Probe to {{ $labels.target }} has been failing for 2 minutes."
+
+        # 느린 응답 (> 2초)
+        - alert: EndpointSlowResponse
+          expr: probe_duration_seconds > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Endpoint {{ $labels.target }} is slow"
+            description: "Response time is {{ $value | humanizeDuration }}."
+
+        # SSL 인증서 만료 임박 (30일 이내)
+        - alert: SSLCertificateExpiringSoon
+          expr: |
+            (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "SSL certificate expiring soon: {{ $labels.target }}"
+            description: "SSL certificate expires in {{ $value | humanize }} days."
+
+        # SSL 인증서 만료 임박 (7일 이내)
+        - alert: SSLCertificateExpiryCritical
+          expr: |
+            (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "SSL certificate expires within 7 days: {{ $labels.target }}"
