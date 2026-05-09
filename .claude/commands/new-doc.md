@@ -4,7 +4,7 @@
 
 주제 분류: alerting, recording-rules, exporters, service-monitor, storage, ha, security, promql
 
-`<주제명>-guide.md` 생성 시 포함 내용:
+`docs/<주제명>-guide.md` 생성 시 포함 내용:
 - CLAUDE.md 환경 설정 반영 (EKS, kube-prometheus-stack)
 - Prometheus YAML 또는 PrometheusRule 예시
 - PromQL 쿼리 예시
