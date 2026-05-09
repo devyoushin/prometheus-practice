@@ -1,6 +1,6 @@
 Prometheus 가이드 문서 또는 YAML을 검토합니다.
 
-**사용법**: `/review-doc <파일 경로>`  **예시**: `/review-doc alerting-guide.md`
+**사용법**: `/review-doc <파일 경로>`  **예시**: `/review-doc docs/alerting-guide.md`
 
 검토 기준:
 - PrometheusRule: `for` 기간 적절성, `labels` 라우팅 일치 여부
