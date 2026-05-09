@@ -2,6 +2,8 @@ Prometheus 트러블슈팅 케이스를 추가합니다.
 
 **사용법**: `/add-troubleshooting <증상 설명>`  **예시**: `/add-troubleshooting 타겟 scrape 실패`
 
+추가 대상 파일: `docs/troubleshooting-guide.md`
+
 형식:
 ```markdown
 ### <증상>
