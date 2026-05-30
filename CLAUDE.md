@@ -18,12 +18,12 @@ prometheus-practice/
 ├── .claude/
 │   ├── settings.json
 │   └── commands/              # /new-doc, /new-runbook, /review-doc, /add-troubleshooting, /search-kb
-├── agents/                    # doc-writer, alerting-designer, exporter-advisor, troubleshooter
-├── templates/                 # service-doc, runbook, incident-report
-├── rules/                     # doc-writing, prometheus-conventions, security-checklist, monitoring
-├── helm/                      # Helm values 파일
-├── manifests/                 # Kubernetes 매니페스트
-└── docs/                      # 주제별 가이드 문서
+├── docs/                      # 주제별 가이드 문서, agents/rules/templates
+│   ├── agents/                # doc-writer, alerting-designer, exporter-advisor, troubleshooter
+│   ├── templates/             # service-doc, runbook, incident-report
+│   └── rules/                 # doc-writing, prometheus-conventions, security-checklist, monitoring
+└── ops/
+    └── config/                # Helm values와 Kubernetes 매니페스트
 ```
 
 ---
@@ -75,7 +75,7 @@ curl http://localhost:9090/api/v1/targets
 kubectl get prometheusrule -A
 
 # promtool로 규칙 검증
-promtool check rules rules/*.yaml
+promtool check rules ops/config/manifests/*.yaml
 
 # PromQL 쿼리 (CLI)
 curl 'http://localhost:9090/api/v1/query?query=up'

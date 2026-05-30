@@ -23,7 +23,7 @@ kubectl create namespace monitoring
 # 개발용 values로 설치
 helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
-  --values helm/values.yaml
+  --values ../ops/config/helm/values.yaml
 
 # 설치 확인 (모든 파드가 Running 상태 확인)
 kubectl get pods -n monitoring -w
@@ -37,8 +37,8 @@ kubectl get pods -n monitoring -w
 
 ```bash
 # 예제 앱 + ServiceMonitor 배포
-kubectl apply -f manifests/example-app.yaml
-kubectl apply -f manifests/servicemonitor.yaml
+kubectl apply -f ../ops/config/manifests/example-app.yaml
+kubectl apply -f ../ops/config/manifests/servicemonitor.yaml
 
 # 배포 확인
 kubectl get pods -n default
@@ -100,7 +100,7 @@ rate(http_requests_total{job="example-app"}[1m])
 
 ```bash
 # 알림 규칙 배포
-kubectl apply -f manifests/prometheusrule.yaml
+kubectl apply -f ../ops/config/manifests/prometheusrule.yaml
 
 # 규칙 로드 확인 (Prometheus UI)
 # http://localhost:9090/alerts
@@ -132,7 +132,7 @@ kubectl port-forward svc/kube-prometheus-stack-alertmanager 9093:9093 -n monitor
 
 ```bash
 # Recording Rules 배포
-kubectl apply -f manifests/recording-rules.yaml
+kubectl apply -f ../ops/config/manifests/prometheusrule.yaml
 ```
 
 기다린 후 생성된 메트릭 확인:
@@ -202,7 +202,7 @@ Grafana에서 다음 대시보드들을 탐색:
 # values 업데이트
 helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
-  --values helm/values.yaml \
+  --values ../ops/config/helm/values.yaml \
   --set prometheus.prometheusSpec.remoteWrite[0].url=http://mimir-nginx.mimir.svc/api/v1/push \
   --set 'prometheus.prometheusSpec.remoteWrite[0].headers.X-Scope-OrgID=default'
 
@@ -231,7 +231,7 @@ kubectl port-forward svc/kube-prometheus-stack-prometheus 9090:9090 -n monitorin
 ## 리소스 정리
 
 ```bash
-kubectl delete -f manifests/
+kubectl delete -f ../ops/config/manifests/
 helm uninstall kube-prometheus-stack -n monitoring
 kubectl delete namespace monitoring
 ```

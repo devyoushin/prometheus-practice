@@ -60,7 +60,7 @@ kubectl get storageclass
 ### Helm values에서 PVC 설정
 
 ```yaml
-# helm/values.yaml
+# ../ops/config/helm/values.yaml
 prometheus:
   prometheusSpec:
     retention: 15d               # 보존 기간

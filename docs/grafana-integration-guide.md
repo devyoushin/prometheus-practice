@@ -36,7 +36,7 @@ curl -s http://admin:prom-operator@localhost:3000/api/datasources | jq '.[].name
 ### 수동 추가 (values.yaml)
 
 ```yaml
-# helm/values.yaml
+# ../ops/config/helm/values.yaml
 grafana:
   additionalDataSources:
     # Mimir 데이터소스 추가

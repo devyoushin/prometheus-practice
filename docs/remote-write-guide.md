@@ -22,7 +22,7 @@ S3 / GCS (장기 저장)
 ### 기본 설정
 
 ```yaml
-# helm/values.yaml
+# ../ops/config/helm/values.yaml
 prometheus:
   prometheusSpec:
     remoteWrite:
