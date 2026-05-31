@@ -1,20 +1,34 @@
 # Personal values files
 values-personal.yaml
 values-local.yaml
+values-secret.yaml
+values-secrets.yaml
+*-local-values.yaml
+*-secret-values.yaml
+*-secrets-values.yaml
 *-secret.yaml
 *-secrets.yaml
 
 # Terraform
 *.tfstate
 *.tfstate.backup
+*.tfstate.*
 .terraform/
 *.tfvars
+*.tfvars.json
 
 # Credentials
 .env
+.env.*
+!.env.example
+!.env.*.example
 *.pem
 *.key
+*.p12
+*.pfx
+kubeconfig
 kubeconfig-*
+*.kubeconfig
 
 # OS
 .DS_Store
@@ -24,6 +38,27 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+*.swo
+*~
+
+# Build, package, and cache output
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+tmp/
+*.tmp
+*.log
+*.tgz
+*.prov
+
+# Backup and data dumps
+backups/
+*.bak
+*.db
+*.sql
+*.sql.gz
 
 # Claude Code
 .claude/
