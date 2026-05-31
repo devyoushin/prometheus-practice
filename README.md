@@ -2,13 +2,22 @@
 
 EKS + kube-prometheus-stack 기준으로 Prometheus 설치, 메트릭 수집, PromQL, 알림, 저장소, 고가용성, 대규모 운영을 정리한 개인 학습 문서입니다.
 
-## 빠른 시작
+## 어디서 시작할까
 
-- 처음 볼 문서: `docs/install.md`
-- 전체 흐름: 설치 -> 아키텍처 -> 메트릭/PromQL -> Kubernetes 연동 -> 알림/저장소 -> 운영/보안
+- 문서 지도: `docs/README.md`
+- 첫 문서: `docs/install.md`
+- 운영 보조 자료: `ops/README.md`
 - AI 작업 지침: `CLAUDE.md`
 
 ## 구조
+
+| 경로 | 내용 |
+|------|------|
+| `docs/` | 설치, 아키텍처, 메트릭, PromQL, 알림, 저장소, 운영 문서 |
+| `ops/` | Helm values와 Kubernetes 매니페스트 예시 |
+| `CLAUDE.md` | 이 레포에서 Claude가 참고할 작업 지침 |
+
+## 상세 구조
 
 ```text
 prometheus-practice/
@@ -16,13 +25,13 @@ prometheus-practice/
 ├── CLAUDE.md
 ├── docs/
 │   ├── README.md
-│   ├── agents/     # Claude 에이전트 프롬프트
-│   ├── rules/      # 작성/운영 규칙
-│   ├── templates/  # 재사용 템플릿
-│   └── *.md        # 주제별 학습 문서
+│   ├── agents/
+│   ├── rules/
+│   ├── templates/
+│   └── *.md
 └── ops/
     ├── README.md
-    └── config/     # Helm values와 Kubernetes 매니페스트 예시
+    └── config/
 ```
 
 ## 학습 경로
