@@ -13,7 +13,7 @@ Prometheus를 처음 보는 사람이 설치부터 운영까지 따라갈 수 �
 | 5 | `service-monitor-guide.md`, `exporters-guide.md` | Kubernetes 연동과 exporter 구성 |
 | 6 | `alerting-guide.md`, `recording-rules-guide.md` | 알림과 기록 규칙 |
 | 7 | `storage-guide.md`, `remote-write-guide.md` | TSDB, 보존 정책, 원격 저장소 |
-| 8 | `ha-guide.md`, `large-scale-operations-guide.md` | 고가용성, 대규모 운영 |
+| 8 | `ha-guide.md`, `ha-lb-systemd-docker-guide.md`, `large-scale-operations-guide.md` | 고가용성, 일반 서버 LB, 대규모 운영 |
 | 9 | `rules/README.md` | 문서와 운영 규칙 |
 | 10 | `agents/README.md` | AI 작업 지침 |
 | 11 | `templates/README.md` | 문서 템플릿 |
@@ -27,7 +27,7 @@ Prometheus를 처음 보는 사람이 설치부터 운영까지 따라갈 수 �
 | 메트릭/쿼리 | `metrics-types-guide.md`, `promql-guide.md`, `recording-rules-guide.md` |
 | 연동 | `service-monitor-guide.md`, `exporters-guide.md`, `grafana-integration-guide.md`, `e2e-practice.md` |
 | 알림/저장소 | `alerting-guide.md`, `storage-guide.md`, `remote-write-guide.md` |
-| 운영 | `ha-guide.md`, `large-scale-operations-guide.md`, `troubleshooting-guide.md`, `security-guide.md` |
+| 운영 | `ha-guide.md`, `ha-lb-systemd-docker-guide.md`, `large-scale-operations-guide.md`, `troubleshooting-guide.md`, `security-guide.md` |
 | 보조 자료 | `rules/`, `agents/`, `templates/` |
 
 ## 읽는 순서
@@ -40,9 +40,10 @@ Prometheus를 처음 보는 사람이 설치부터 운영까지 따라갈 수 �
 6. `alerting-guide.md`
 7. `storage-guide.md`
 8. `ha-guide.md`
-9. `rules/README.md`
-10. `agents/README.md`
-11. `templates/README.md`
+9. `ha-lb-systemd-docker-guide.md`
+10. `rules/README.md`
+11. `agents/README.md`
+12. `templates/README.md`
 
 ## 관련 경로
 
