@@ -4,7 +4,7 @@ Prometheus 문서는 학습 문서, 규칙, 템플릿, 에이전트 프롬프트
 
 | 폴더/문서 | 내용 |
 |------|------|
-| `install.md` | kube-prometheus-stack 설치 |
+| `install.md` | Helm, systemd, Docker Compose 설치 |
 | `architecture-guide.md` | Prometheus 구조와 데이터 흐름 |
 | `metrics-types-guide.md` | Counter, Gauge, Histogram, Summary |
 | `promql-guide.md` | PromQL 기초와 실전 쿼리 |
