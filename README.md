@@ -5,7 +5,7 @@ EKS + kube-prometheus-stack 기준으로 Prometheus 설치, 메트릭 수집, Pr
 ## 어디서 시작할까
 
 - 문서 지도: `docs/README.md`
-- 첫 문서: `docs/install.md`
+- 첫 문서: `docs/install/install.md`
 - 설치 방식: Helm / systemd / Docker Compose
 - 운영 보조 자료: `ops/README.md`
 - AI 작업 지침: `CLAUDE.md`
@@ -39,7 +39,7 @@ prometheus-practice/
 
 | 단계 | 문서 |
 |------|------|
-| 설치 | `docs/install.md` |
+| 설치 | `docs/install/install.md` |
 | 핵심 개념 | `docs/architecture-guide.md`, `docs/metrics-types-guide.md` |
 | 쿼리 | `docs/promql-guide.md`, `docs/recording-rules-guide.md` |
 | Kubernetes 연동 | `docs/service-monitor-guide.md`, `docs/exporters-guide.md` |

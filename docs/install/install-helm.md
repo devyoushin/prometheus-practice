@@ -17,7 +17,7 @@ kubectl create namespace monitoring
 ```bash
 helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
-  --values ../ops/config/helm/values.yaml \
+  --values ../../ops/config/helm/values.yaml \
   --version 65.x.x
 ```
 
@@ -52,7 +52,7 @@ kubectl port-forward svc/kube-prometheus-stack-alertmanager 9093:9093 -n monitor
 ```bash
 helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
-  --values ../ops/config/helm/values.yaml
+  --values ../../ops/config/helm/values.yaml
 ```
 
 ## 삭제

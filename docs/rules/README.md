@@ -22,4 +22,4 @@
 
 - `../agents/README.md`
 - `../templates/README.md`
-- `../install.md`
+- `../install/install.md`
