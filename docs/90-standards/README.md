@@ -20,6 +20,6 @@
 
 ## 관련 문서
 
-- `../agents/README.md`
-- `../templates/README.md`
-- `../install/install.md`
+- `../99-agents/README.md`
+- `../91-templates/README.md`
+- `../01-installation/install.md`

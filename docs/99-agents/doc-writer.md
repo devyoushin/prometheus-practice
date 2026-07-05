@@ -11,4 +11,4 @@ description: Prometheus 가이드 문서 작성 전문가. PrometheusRule, Servi
 1. 개요 / 2. YAML 예시 / 3. PromQL 예시 / 4. 확인 명령어 / 5. 트러블슈팅
 ## 참조
 - `CLAUDE.md` — EKS, kube-prometheus-stack 환경
-- `rules/prometheus-conventions.md` — 코드 표준
+- `90-standards/prometheus-conventions.md` — 코드 표준

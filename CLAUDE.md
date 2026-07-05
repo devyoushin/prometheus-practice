@@ -44,7 +44,7 @@ prometheus-practice/
 
 | 문서 | 주제 |
 |------|------|
-| `docs/install/install.md` | kube-prometheus-stack 설치 (Helm) |
+| `docs/01-installation/install.md` | kube-prometheus-stack 설치 (Helm) |
 | `docs/architecture-guide.md` | Prometheus 아키텍처 |
 | `docs/metrics-types-guide.md` | 메트릭 타입 (Counter, Gauge, Histogram, Summary) |
 | `docs/promql-guide.md` | PromQL 기초 및 실전 |
